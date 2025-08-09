@@ -4,3 +4,4 @@ matplotlib==3.7.1
 seaborn==0.12.2
 jupyter==1.0.0
 ipykernel==6.22.0
+streamlit==1.28.1
