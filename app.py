@@ -157,11 +157,25 @@ elif analysis_type == "Seasonal Trends":
     
     # Convert date column to datetime if it exists
     if 'date' in matches.columns:
-        matches['date'] = pd.to_datetime(matches['date'])
-        matches['year'] = matches['date'].dt.year
+        # Create a copy to avoid modifying the cached data
+        matches_copy = matches.copy()
+        
+        try:
+            # Handle DD-MM-YYYY format
+            matches_copy['date'] = pd.to_datetime(matches_copy['date'], format='%d-%m-%Y', errors='coerce')
+            matches_copy['year'] = matches_copy['date'].dt.year
+        except Exception as e:
+            try:
+                # Fallback to automatic parsing with error handling
+                matches_copy['date'] = pd.to_datetime(matches_copy['date'], dayfirst=True, errors='coerce')
+                matches_copy['year'] = matches_copy['date'].dt.year
+            except Exception as e2:
+                st.error(f"Error parsing dates: {e2}")
+                st.write("Sample date values:", matches_copy['date'].head().tolist())
+                st.stop()
         
         # Matches per season
-        seasonal_matches = matches.groupby('year').size()
+        seasonal_matches = matches_copy.groupby('year').size()
         
         fig, ax = plt.subplots(figsize=(12, 6))
         ax.plot(seasonal_matches.index, seasonal_matches.values, marker='o', linewidth=2, markersize=8)
